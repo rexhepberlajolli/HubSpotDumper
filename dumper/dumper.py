@@ -19,15 +19,30 @@ class Dumper(object):
 
     def get_text(self, attribute):
         if attribute in self.selectors:
-            return self._file.xpath(self.selectors[attribute])[0].text
-        return "Set the selector first"
+            text = self._file.xpath(self.selectors[attribute])
+            if len(text) > 0:
+                return u'{}'.format(text[0].text)
+        return None
 
     def get_html(self, attribute):
         if attribute in self.selectors:
-            return "".join([etree.tostring(elem) for elem in self._file.xpath(self.selectors[attribute]) if isinstance(elem, lxml.etree._Element)])
+            post = self._file.xpath(self.selectors[attribute])
+            if post:
+                return "".join([etree.tostring(elem) for elem in post if isinstance(elem, lxml.etree._Element)])
+        return None
 
-    def get_list(self, attribute, delimeter):
-        return "".join([i.text for i in self._file.xpath(self.selectors[attribute])]).split(delimeter)
+    def get_list(self, attribute):
+        return [i.text for i in self._file.xpath(self.selectors[attribute])]
 
     def save_image(self, attribute, file_name):
-        urlretrieve(self._file.xpath(self.selectors[attribute])[0], file_name)
+        while True:
+            try:
+                image_link = self._file.xpath(self.selectors[attribute])
+                if len(image_link) > 0:
+                    urlretrieve(image_link[0], file_name)
+                    return file_name
+                return None
+            except Exception as e:
+                print str(e)
+                continue
+            break
